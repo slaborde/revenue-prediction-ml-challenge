@@ -1,0 +1,4 @@
+,best_params,train_mae,train_r2,dev_mae,dev_r2
+XGBoost,"{'subsample': 0.6, 'reg_lambda': 5.0, 'reg_alpha': 0.1, 'n_estimators': 150, 'min_child_weight': 5, 'max_depth': 3, 'learning_rate': 0.05, 'gamma': 1.0, 'colsample_bytree': 0.7}",14.436794703982928,0.8044227907026582,18.9351762993552,0.9455621311329867
+Gradient Boosting,"{'subsample': 0.6, 'n_estimators': 50, 'min_samples_split': 20, 'min_samples_leaf': 5, 'max_features': 0.5, 'max_depth': 4, 'learning_rate': 0.1}",16.059197979366136,0.8219087252140492,19.868880674519954,0.9575596265239302
+Random Forest,"{'n_estimators': 100, 'min_samples_split': 10, 'min_samples_leaf': 5, 'max_features': 'sqrt', 'max_depth': 5}",18.506056332759275,0.5437048467173566,31.81506471494198,0.7040159984818495

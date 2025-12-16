@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Environment variables
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MLFlow
+mlruns/
+mlflow/
+
+# Database
+*.db
+*.sqlite
+
+# Logs
+*.log
+
+# Docker volumes
+postgres_data/
+mlflow_data/
+
+# Model artifacts (uncomment if you don't want to commit them)
+# src/models/artifacts/*.pkl
+# src/models/artifacts/*.csv
+
+# Data (uncomment if dataset is large or sensitive)
+# data/*.csv

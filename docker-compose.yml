@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:14-alpine
+    container_name: revenue_prediction_db
+    environment:
+      POSTGRES_DB: revenue_predictions
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  # MLFlow Tracking Server
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: mlflow_server
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://postgres:postgres@db:5432/mlflow
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5005
+    ports:
+      - "5005:5005"
+    volumes:
+      - mlflow_data:/mlflow
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  # Revenue Prediction API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: revenue_prediction_api
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=revenue_predictions
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - MLFLOW_TRACKING_URI=http://mlflow:5005
+      - MLFLOW_MODEL_VERSION=latest
+      - PORT=5001
+      - DEBUG=False
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      mlflow:
+        condition: service_started
+    networks:
+      - app_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mlflow_data:
+
+networks:
+  app_network:
+    driver: bridge
+

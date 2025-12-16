@@ -1,0 +1,14 @@
+feature,importance
+event_2,0.25566098
+total_events,0.20007282
+country_mean_revenue,0.19130677
+country_region_freq,0.08558519
+country_freq,0.07741981
+event_3,0.061017584
+device_family_freq,0.04554235
+event_2_ratio,0.044331666
+event_3_ratio,0.035415117
+platform_encoded,0.0033172183
+event_1,0.00017511711
+source_encoded,0.00015534004
+event_1_ratio,0.0
