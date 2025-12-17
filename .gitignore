@@ -23,6 +23,7 @@ MANIFEST
 
 # Virtual environments
 venv/
+venv_regal/
 env/
 ENV/
 .venv
@@ -65,3 +66,6 @@ mlflow_data/
 
 # Data (uncomment if dataset is large or sensitive)
 # data/*.csv
+
+# Miscellaneous documentation
+doc_misc/
