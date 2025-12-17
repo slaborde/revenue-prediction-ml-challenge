@@ -57,16 +57,17 @@ Este proyecto implementa una solución completa end-to-end de Machine Learning p
 
 ### Performance del Modelo
 
-🔒 EVALUACIÓN FINAL EN TEST SET (PRIMERA Y ÚNICA VEZ)
-======================================================================
-Modelo: XGBoost
+## 🔒 EVALUACIÓN FINAL EN TEST SET (PRIMERA Y ÚNICA VEZ)
 
-RESULTADOS FINALES:
-----------------------------------------------------------------------
-             MAE        RMSE        R²
-Train  14.183916  376.608521  0.797432
-Dev    16.909938  209.872673  0.959321
-Test   15.820717  202.719912  0.909435
+**Modelo: XGBoost**
+
+### RESULTADOS FINALES:
+
+| Split | MAE      | RMSE       | R²       |
+|-------|----------|------------|----------|
+| Train | 14.18    | 376.61     | 0.797    |
+| Dev   | 16.91    | 209.87     | 0.959    |
+| Test  | 15.82    | 202.72     | 0.909    |
 
 ---
 
