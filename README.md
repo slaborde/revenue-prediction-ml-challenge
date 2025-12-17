@@ -2,6 +2,12 @@
 
 Sistema de predicción de revenue para usuarios de juegos móviles durante los primeros 7 días desde la instalación. Implementado como un microservicio Flask de baja latencia con integración de MLFlow y PostgreSQL.
 
+## Estructura de la Documentacion
+README.md (este doc) - Guia principal para instalar y entender la solucion, se debe leer primero esta guia antes de leer el resto de los documentos
+ENTREGA.md - Overview de la solucion
+PROJECT_SUMMARY.txt - Resumen de la solucion implementada
+API_DOCS.md - Documentacion detallada del microservicio (API)
+
 ## Tabla de Contenidos
 
 - [Descripción](#descripción)
@@ -46,7 +52,8 @@ regal_cinemas/
 ├── data/
 │   └── dataset.csv                 # Dataset original
 ├── notebooks/
-│   └── model_development.ipynb     # Notebook con EDA y modelado completo
+│   └── model_training_whale_weighted_mlflow.ipynb     # Modelado completo
+    └── eda.ipynb     # Notebook con EDA 
 ├── src/
 │   ├── api/
 │   │   ├── __init__.py
@@ -72,26 +79,13 @@ regal_cinemas/
 
 ## Instalación
 
-### Desde 0 (Docker)
+Para instalar la solucion completa primero se debe correr el notebook de entrenamiento del modelo para generar los artefactos necesarios que necesita el micro servicio para servir las predicciones. En caso de no querer hacerlo se puede saltear el paso ya que los artefactos estan previamente generados en la carpeta correspondiente. 
 
-```bash
-# Construir y levantar todos los servicios
-docker-compose build --no-cache
-docker-compose up -d
+Adicionalmete se incluyo un paso **solo con fines de simplificar la instalacion del challenge, no forma parte de la solucion productiva** donde si los artefactos no se encuentran presentes en la carpeta esperada, previo a iniciar el micro servicio se corre (via script) automaticamente el entrenamiento del modelo para generar los artefactos necesarios.
 
-Una vez que se levanten todos los servicios, si los artefactos del modelo no se encuentran dentro de la carpeta src/models/artifacts al iniciar el contenedor de la api se correra un script que entrenara el modelo generando los artefactos necesarios, se debe esperar a que termine para que luego se inicie el micro servicio, el servidor de MLFlow y se registre el modelo entrenado en la registry del servidor de MLFlow.
+### Paso 1: Entrenamiento del Modelo
 
-Para chequear finalizacion correcta se pueden examinar los logs del micro servicio
-docker-compose logs -f api
-
-# La API estará disponible en http://localhost:5001
-# Para chequear su funcionamiento ejecute http://localhost:5001/health
-# MLFlow UI en http://localhost:5005
-
-```
-### Entrenamiento del Modelo
-
-Para examinar la parte de analisis y entrenamiento del modelo se puede setear un venv de python, activarlo e instalar las librerias de requeriments luego se pueden correr los notebooks de analisis exploratorio eda.ipynb y el notebook de entrenamiento del modelo model_training_whale_weighted_mlflow.ipynb, si se corre este ultimo ya quedaron generados los artefactos del modelo, de esta forma se usaran estos artefactos y no sera necesario correr el entrenamiento dentro del contenedor
+Para examinar la parte de analisis y entrenamiento del modelo se puede setear un venv de python, activarlo e instalar las librerias de requeriments luego se pueden correr los notebooks de analisis exploratorio eda.ipynb y el notebook de entrenamiento del modelo model_training_whale_weighted_mlflow.ipynb
 
 ```bash
 # Crear entorno virtual
@@ -99,17 +93,35 @@ python -m venv venv_regal
 source venv_regal/bin/activate  # En Windows: venv\Scripts\activate
 
 # Instalar dependencias
+
+# Para el caso de Mac Os, se recomienda correr esta linea (instala una version pre-compilada) previo a instalar requirements en otro caso saltear la linea
+# ya que puede fallar la instalacion de lightGBM porque requiere compilacion y esto puede dar problemas
+pip install lightgbm==4.6.0 --no-build-isolation # Solo para Mac Os en otro caso saltar el paso
+
+# Instalar resto de dependencias
 pip install -r requirements.txt
 
 # Ejecutar notebook para entrenar modelo
 jupyter notebook notebooks/model_training_whale_weighted_mlflow.ipynb
 ```
-## Uso
+#### Uso
 
-### Entrenar el Modelo
-1. Abrir el notebook `notebooks/model_training_whale_weighted_mlflow.ipynb` y `notebooks/eda.ipynb.ipynb`
+#### Entrenar el Modelo
+1. Abrir el notebook `notebooks/model_training_whale_weighted_mlflow.ipynb`
 2. Ejecutar todas las celdas
 3. El modelo y artefactos se guardarán en `src/models/artifacts/`
+
+### Instalar el MicroServicio (API)
+```bash
+# Construir y levantar todos los servicios (si se desea se puede ejecutar docker-compose up --build en lugar de docker build y luego docker up)
+docker-compose build --no-cache
+docker-compose up -d
+# Opcional: Para chequear finalizacion correcta se pueden examinar los logs del micro servicio
+docker-compose logs -f api
+# La API estará disponible en http://localhost:5001 
+# Para chequear su funcionamiento ejecute http://localhost:5001/health abajo hay mas ejemplos de su uso
+# MLFlow UI en http://localhost:5005 aqui se puede verificar que esta levantado el server de MLFlow y esta el modelo registrado
+```
 
 ### Hacer Predicciones
 
@@ -156,11 +168,16 @@ Health check del servicio.
 **Response:**
 ```json
 {
-  "status": "healthy",
-  "timestamp": "2024-01-15T10:30:00",
-  "model": "LightGBM",
-  "version": "1.0.0"
-}
+    "status": "healthy",
+    "timestamp": "2025-12-17T15:30:45.123456",
+    "model": "XGBoost",
+    "mlflow_registered": true,
+    "model_source": "mlflow",
+    "version": 1,
+    "mlflow_tracking_uri": "http://mlflow:5005",
+    "mlflow_run_id": "abc123def456...",
+    "mlflow_model_name": "revenue_prediction_xgboost"
+  }
 ```
 
 ### POST /predict
@@ -213,15 +230,29 @@ Información sobre el modelo en producción.
 **Response:**
 ```json
 {
-  "model_name": "XGBoost",
-  "features": ["event_1", "event_2", ...],
-  "metrics": {
-    "test_mae": 0.0123,
-    "test_rmse": 0.0456,
-    "test_r2": 0.89
-  },
-  "version": "1.0.0"
-}
+    "model_name": "XGBoost",
+    "features": [
+      "country_mean_revenue",
+      "event_1",
+      "event_2",
+      "event_3",
+      "country_value_counts",
+      "device_family_value_counts",
+      "country_region_value_counts",
+      "source_encoded",
+      "platform_encoded",
+      "os_version_major",
+      "os_version_minor",
+      "event_1_log",
+      "event_2_log"
+    ],
+    "metrics": {
+      "test_mae": 15.82,
+      "test_rmse": 24.66,
+      "test_r2": 0.909
+    },
+    "version": "1.0.0"
+  }
 ```
 
 ### GET /stats
@@ -230,12 +261,26 @@ Estadísticas de predicciones realizadas.
 **Response:**
 ```json
 {
-  "total_predictions": 1234,
-  "avg_predicted_revenue": 0.234,
-  "avg_inference_time_ms": 15.6,
-  "top_countries": [...],
-  "platform_distribution": [...]
-}
+    "avg_inference_time_ms": 157.39834308624268,
+    "avg_predicted_revenue": 22.16754913330078,
+    "first_prediction": "Wed, 17 Dec 2025 01:55:51 GMT",
+    "last_prediction": "Wed, 17 Dec 2025 16:31:05 GMT",
+    "max_predicted_revenue": 22.16754913330078,
+    "min_predicted_revenue": 22.16754913330078,
+    "platform_distribution": [
+      {
+        "count": 2,
+        "platform": "iOS"
+      }
+    ],
+    "top_countries": [
+      {
+        "count": 2,
+        "country": "es"
+      }
+    ],
+    "total_predictions": 2
+  }
 ```
 
 ## Modelo de ML
@@ -257,13 +302,16 @@ Se evaluaron múltiples modelos:
 - Lasso Regression
 - Random Forest
 - Gradient Boosting
-- XGBoost
-- LightGBM (seleccionado)
+- XGBoost (seleccionado)
+- LightGBM 
 
 ### Métricas de Evaluación
 
 El modelo final fue evaluado usando:
 - **MAE (Mean Absolute Error):** Métrica principal
+  Porque ?
+    1. Interpretable en términos de negocio: MAE=15.82 significa que en promedio nos equivocamos por $15.82 en la predicción de revenue, directamente entendible para stakeholders.
+    2. Robusta a outliers (whales): A diferencia de RMSE/MSE que penalizan cuadráticamente, MAE trata todos los errores linealmente, evitando que usuarios de alto revenue (whales) dominen la optimización del modelo.
 - **RMSE (Root Mean Squared Error):** Error cuadrático
 - **R² Score:** Capacidad explicativa
 
@@ -326,8 +374,9 @@ DB_NAME=revenue_predictions
 DB_USER=postgres
 DB_PASSWORD=postgres
 MLFLOW_TRACKING_URI=http://mlflow:5005
-PORT=5000
+PORT=5001
 DEBUG=False
+MLFLOW_MODEL_VERSION=latest
 ```
 
 ## MLFlow Integration
@@ -407,10 +456,34 @@ CREATE TABLE predictions (
 ### Selección de Modelo
 
 Se seleccionó XGBoost por:
-- Mejor performance en métricas de evaluación
-- Velocidad de inferencia
-- Robustez a outliers
-- Manejo nativo de features categóricas
+1. Mejor Performance en Métricas
+
+  - R² = 0.909: Explica el 90.9% de la varianza en revenue
+  - MAE = 15.82: Error absoluto medio más bajo que otros modelos
+  - RMSE = 24.66: Mejor predicción que Random Forest y LightGBM
+
+  2. Manejo Excelente de Whales (High-Value Users)
+
+  Durante el análisis exploratorio descubrimos que el 99.6% del revenue viene de solo el 15% de usuarios (Perú y otros países con whales). XGBoost:
+  - Captura bien patrones no lineales de comportamiento de whales
+  - Maneja efectivamente outliers (usuarios con revenue muy alto)
+  - Usa gradient boosting que se enfoca en errores difíciles (como predecir whales)
+
+  3. Robustez con Features de Comportamiento
+
+  - Maneja bien event_1, event_2, event_3 (eventos de usuario)
+  - Utiliza efectivamente target encoding (country_mean_revenue)
+  - No requiere normalización de features
+
+  4. Ventajas Técnicas sobre LightGBM y Random Forest
+
+  vs LightGBM:
+  - Similar en velocidad pero mejor accuracy en nuestro dataset
+  - Más estable con whale-weighted split
+
+  vs Random Forest:
+  - Mejor con datos desbalanceados (whales vs no-whales)
+  - Gradient boosting > bagging para este caso
 
 ### Optimizaciones de Performance
 

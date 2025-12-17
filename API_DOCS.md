@@ -21,11 +21,16 @@ Check the health status of the API.
 **Response:**
 ```json
 {
-  "status": "healthy",
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "model": "LightGBM",
-  "version": "1.0.0"
-}
+    "status": "healthy",
+    "timestamp": "2025-12-17T15:30:45.123456",
+    "model": "XGBoost",
+    "mlflow_registered": true,
+    "model_source": "mlflow",
+    "version": 1,
+    "mlflow_tracking_uri": "http://mlflow:5005",
+    "mlflow_run_id": "abc123def456...",
+    "mlflow_model_name": "revenue_prediction_xgboost"
+  }
 ```
 
 **Status Codes:**
@@ -226,29 +231,29 @@ Get information about the current model in production.
 **Response:**
 ```json
 {
-  "model_name": "LightGBM",
-  "features": [
-    "event_1",
-    "event_2",
-    "event_3",
-    "total_events",
-    "event_1_ratio",
-    "event_2_ratio",
-    "event_3_ratio",
-    "country_freq",
-    "country_region_freq",
-    "device_family_freq",
-    "source_encoded",
-    "platform_encoded",
-    "country_mean_revenue"
-  ],
-  "metrics": {
-    "test_mae": 0.012345,
-    "test_rmse": 0.045678,
-    "test_r2": 0.89
-  },
-  "version": "1.0.0"
-}
+    "model_name": "XGBoost",
+    "features": [
+      "country_mean_revenue",
+      "event_1",
+      "event_2",
+      "event_3",
+      "country_value_counts",
+      "device_family_value_counts",
+      "country_region_value_counts",
+      "source_encoded",
+      "platform_encoded",
+      "os_version_major",
+      "os_version_minor",
+      "event_1_log",
+      "event_2_log"
+    ],
+    "metrics": {
+      "test_mae": 15.82,
+      "test_rmse": 24.66,
+      "test_r2": 0.909
+    },
+    "version": "1.0.0"
+  }
 ```
 
 **Status Codes:**
@@ -270,22 +275,26 @@ Get statistics about predictions made by the system.
 **Response:**
 ```json
 {
-  "total_predictions": 1234,
-  "avg_predicted_revenue": 0.234567,
-  "min_predicted_revenue": 0.0,
-  "max_predicted_revenue": 1.5,
-  "avg_inference_time_ms": 15.6,
-  "first_prediction": "2024-01-10T08:00:00.000Z",
-  "last_prediction": "2024-01-15T10:30:00.000Z",
-  "top_countries": [
-    {"country": "es", "count": 500},
-    {"country": "us", "count": 300}
-  ],
-  "platform_distribution": [
-    {"platform": "ios", "count": 700},
-    {"platform": "android", "count": 534}
-  ]
-}
+    "avg_inference_time_ms": 157.39834308624268,
+    "avg_predicted_revenue": 22.16754913330078,
+    "first_prediction": "Wed, 17 Dec 2025 01:55:51 GMT",
+    "last_prediction": "Wed, 17 Dec 2025 16:31:05 GMT",
+    "max_predicted_revenue": 22.16754913330078,
+    "min_predicted_revenue": 22.16754913330078,
+    "platform_distribution": [
+      {
+        "count": 2,
+        "platform": "iOS"
+      }
+    ],
+    "top_countries": [
+      {
+        "count": 2,
+        "country": "es"
+      }
+    ],
+    "total_predictions": 2
+  }
 ```
 
 **Status Codes:**

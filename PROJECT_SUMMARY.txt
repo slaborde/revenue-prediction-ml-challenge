@@ -15,8 +15,8 @@ COMPONENTES ENTREGADOS
      - Análisis Exploratorio de Datos (EDA)
      - Feature Engineering
      - Evaluación de 5 modelos diferentes
-     - Modelo final: LightGBM
-     - Métricas de evaluación
+     - Modelo final: XGBoost
+     - Métricas de evaluación (MAE)
      - Visualizaciones
 
 🚀 MICROSERVICIO FLASK
@@ -35,9 +35,9 @@ COMPONENTES ENTREGADOS
 
 🐳 DOCKER & DEPLOYMENT
   ✅ docker-compose con 3 servicios:
-     - API Flask (puerto 5000)
+     - API Flask (puerto 5001)
      - PostgreSQL (puerto 5432)
-     - MLFlow Server (puerto 5001)
+     - MLFlow Server (puerto 5005)
   
   ✅ Configuración:
      - Multi-stage Dockerfile optimizado
@@ -68,13 +68,10 @@ COMPONENTES ENTREGADOS
      - Estadísticas agregadas
 
 📚 DOCUMENTACIÓN
-  ✅ 7 archivos de documentación:
+  ✅ 4 archivos de documentación:
      - README.md (principal)
      - API_DOCS.md (documentación de API)
-     - DEPLOYMENT.md (guía de deployment)
-     - QUICKSTART.md (inicio rápido)
      - ENTREGA.md (overview del proyecto)
-     - INSTRUCCIONES_EVALUACION.md (guía para evaluadores)
      - PROJECT_SUMMARY.txt (este archivo)
 
 ================================================================================
@@ -122,6 +119,8 @@ Machine Learning:
   • LightGBM 4.0.0
   • matplotlib 3.7.2
   • seaborn 0.12.2
+  • XGBoost 2.0.3
+
 
 API & Backend:
   • Flask 2.3.3
@@ -135,21 +134,6 @@ MLOps:
 Testing:
   • pytest 7.4.0
   • pytest-cov
-
-================================================================================
-ESTADÍSTICAS DEL PROYECTO
-================================================================================
-
-Archivos Python:        10
-Archivos de tests:      2
-Notebook Jupyter:       1
-Archivos Docker:        2
-Archivos Markdown:      7
-Total archivos:         23
-
-Líneas de código:       ~2,500
-Líneas de docs:         ~1,500
-Tests implementados:    19
 
 ================================================================================
 CÓMO EMPEZAR (QUICK START)

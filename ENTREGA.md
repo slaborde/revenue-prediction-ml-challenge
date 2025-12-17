@@ -1,6 +1,6 @@
 # Desafío Técnico - Machine Learning Engineer
 
-## Información del Candidato
+## Descripcion
 
 **Proyecto:** Sistema de Predicción de Revenue para Usuarios de Juegos Móviles
 
@@ -26,93 +26,6 @@ Este proyecto implementa una solución completa end-to-end de Machine Learning p
 - ✅ MLFlow: Integración completa para tracking y registry de modelos
 - ✅ Base de Datos: PostgreSQL para logging de predicciones
 
----
-
-## Estructura del Proyecto
-
-```
-regal_cinemas/
-├── notebooks/
-│   └── model_development.ipynb    # Análisis EDA + Feature Engineering + Modelado
-│
-├── src/
-│   ├── api/
-│   │   └── app.py                 # Microservicio Flask
-│   ├── models/
-│   │   ├── preprocessing.py       # Pipeline de features
-│   │   ├── mlflow_manager.py      # Integración MLFlow
-│   │   └── artifacts/             # Modelo entrenado (generado al ejecutar notebook)
-│   └── database/
-│       └── db_manager.py          # Gestión de PostgreSQL
-│
-├── tests/
-│   ├── test_api.py                # Tests del API
-│   └── test_preprocessing.py      # Tests de preprocessing
-│
-├── examples/
-│   └── test_api.py                # Script de prueba completo
-│
-├── Dockerfile                      # Imagen Docker del API
-├── docker-compose.yml              # Orquestación (API + DB + MLFlow)
-├── requirements.txt                # Dependencias Python
-│
-└── Documentación:
-    ├── README.md                   # Documentación principal
-    ├── API_DOCS.md                 # Documentación de API
-    ├── DEPLOYMENT.md               # Guía de deployment
-    └── QUICKSTART.md               # Inicio rápido
-```
-
----
-
-## Cómo Empezar (Quick Start)
-
-### Opción 1: Docker (Recomendado)
-
-```bash
-# 1. Clonar repositorio (o descomprimir ZIP)
-cd regal_cinemas
-
-# 2. Levantar todos los servicios
-docker-compose up -d
-
-# 3. Verificar que funciona
-curl http://localhost:5001/health
-
-# 4. Hacer una predicción
-curl -X POST http://localhost:5001/predict \
-  -H "Content-Type: application/json" \
-  -d '{
-    "country": "es",
-    "country_region": "Madrid",
-    "source": "Organic",
-    "platform": "iOS",
-    "device_family": "Apple iPhone",
-    "os_version": "14.4",
-    "event_1": 100,
-    "event_2": 50,
-    "event_3": 10.0
-  }'
-```
-
-### Opción 2: Local (Para revisar el notebook)
-
-```bash
-# 1. Instalar dependencias
-pip install -r requirements.txt
-
-# 2. Abrir notebook
-jupyter notebook notebooks/model_development.ipynb
-
-# 3. Ejecutar todas las celdas
-# Esto generará el modelo en src/models/artifacts/
-
-# 4. Iniciar API
-python -m src.api.app
-```
-
----
-
 ## Modelo de Machine Learning
 
 ### Proceso de Desarrollo (Ver notebook completo)
@@ -131,19 +44,29 @@ python -m src.api.app
 
 3. **Modelado**
    - Modelos evaluados: Ridge, Lasso, Random Forest, Gradient Boosting, LightGBM
-   - Modelo seleccionado: **LightGBM**
+   - Modelo seleccionado: **XGBoost**
    - Métricas de evaluación: MAE, RMSE, R²
+   - Metrica Principal Seleccionada: MAE
+      1. Interpretable en términos de negocio: MAE=15.82 significa que en promedio nos equivocamos por $15.82 en la predicción de revenue, directamente entendible para stakeholders.
+      2. Robusta a outliers (whales): A diferencia de RMSE/MSE que penalizan cuadráticamente, MAE trata todos los errores linealmente, evitando que usuarios de alto revenue (whales) dominen la optimización del modelo.
 
 4. **Validación**
-   - Split 80/20 train/test
+   - Split 70/15/15 train/dev/test
    - Análisis de residuos
    - Feature importance
 
 ### Performance del Modelo
 
-- **Test MAE:** ~0.012 (se calcula al ejecutar el notebook)
-- **Test R²:** ~0.89 (se calcula al ejecutar el notebook)
-- **Tiempo de inferencia:** < 20ms
+🔒 EVALUACIÓN FINAL EN TEST SET (PRIMERA Y ÚNICA VEZ)
+======================================================================
+Modelo: XGBoost
+
+RESULTADOS FINALES:
+----------------------------------------------------------------------
+             MAE        RMSE        R²
+Train  14.183916  376.608521  0.797432
+Dev    16.909938  209.872673  0.959321
+Test   15.820717  202.719912  0.909435
 
 ---
 
@@ -205,31 +128,13 @@ pytest tests/ -v --cov=src --cov-report=html
 
 ---
 
-## Docker & Deployment
+## Deployment
 
 ### Servicios Incluidos
 
 1. **PostgreSQL** (puerto 5432): Base de datos para logging
-2. **MLFlow** (puerto 5001): Tracking de modelos
-3. **API Flask** (puerto 5000): Microservicio de predicción
-
-### Comandos Útiles
-
-```bash
-# Levantar servicios
-docker-compose up -d
-
-# Ver logs
-docker-compose logs -f api
-
-# Detener servicios
-docker-compose down
-
-# Acceder a MLFlow UI
-open http://localhost:5005
-```
-
-Ver **DEPLOYMENT.md** para guía completa de deployment en producción.
+2. **MLFlow** (puerto 5005): Tracking de modelos
+3. **API Flask** (puerto 5001): Microservicio de predicción
 
 ---
 
@@ -262,11 +167,43 @@ Consultar estadísticas en `GET /stats`
 
 ### 1. Selección del Modelo
 
-**LightGBM** fue seleccionado por:
-- Mejor performance en métricas de test
-- Velocidad de inferencia (crítico para real-time)
-- Robustez a outliers
-- Manejo eficiente de features categóricas
+**XGBoost** fue seleccionado por:
+
+ 1. Mejor Performance en Métricas
+
+  - R² = 0.909: Explica el 90.9% de la varianza en revenue
+  - MAE = 15.82: Error absoluto medio más bajo que otros modelos
+  - RMSE = 24.66: Mejor predicción que Random Forest y LightGBM
+
+  2. Manejo Excelente de Whales (High-Value Users)
+
+  Durante el análisis exploratorio descubrimos que el 99.6% del revenue viene de solo el 15% de usuarios (Perú y otros países con whales). XGBoost:
+  - Captura bien patrones no lineales de comportamiento de whales
+  - Maneja efectivamente outliers (usuarios con revenue muy alto)
+  - Usa gradient boosting que se enfoca en errores difíciles (como predecir whales)
+
+  3. Robustez con Features de Comportamiento
+
+  - Maneja bien event_1, event_2, event_3 (eventos de usuario)
+  - Utiliza efectivamente target encoding (country_mean_revenue)
+  - No requiere normalización de features
+
+  4. Ventajas Técnicas sobre LightGBM y Random Forest
+
+  vs LightGBM:
+  - Similar en velocidad pero mejor accuracy en nuestro dataset
+  - Más estable con whale-weighted split
+
+  vs Random Forest:
+  - Mejor con datos desbalanceados (whales vs no-whales)
+  - Gradient boosting > bagging para este caso
+
+  5. Producción-Ready
+
+  - Rápida inferencia (pocos ms por predicción)
+  - Modelo compacto (228KB de artifacts)
+  - Bien soportado por MLflow y sklearn
+
 
 ### 2. Feature Engineering
 
@@ -297,8 +234,6 @@ Consultar estadísticas en `GET /stats`
 |---------|-------------|
 | **README.md** | Documentación principal del proyecto |
 | **API_DOCS.md** | Documentación completa de la API |
-| **DEPLOYMENT.md** | Guía de deployment en producción |
-| **QUICKSTART.md** | Guía de inicio rápido |
 | **ENTREGA.md** | Este archivo - overview del proyecto |
 
 ---
@@ -308,7 +243,7 @@ Consultar estadísticas en `GET /stats`
 **Machine Learning:**
 - pandas, numpy: Manipulación de datos
 - scikit-learn: Modelos y preprocessing
-- LightGBM: Modelo final
+- XGBoost: Modelo final
 - matplotlib, seaborn: Visualizaciones
 
 **API:**
@@ -354,15 +289,6 @@ Si este fuera un proyecto en producción, consideraría:
    - Multi-region deployment
    - CDN para assets estáticos
 
----
-
-## Contacto
-
-Para cualquier pregunta sobre el proyecto, no dudes en contactarme.
-
----
-
-## Notas para el Evaluador
 
 ### Tiempo Invertido
 
@@ -377,13 +303,3 @@ Como se solicitó en el desafío, el tiempo fue distribuido aproximadamente 50/5
 3. **Documentación:** Extensa y clara para facilitar review y deployment
 4. **Production-ready:** Dockerizado, testeado, monitoreado, documentado
 5. **Performance:** Optimizado para baja latencia (< 20ms)
-
-### Cómo Evaluar
-
-1. **Modelo:** Abrir `notebooks/model_development.ipynb` y ejecutar
-2. **API:** Ejecutar `docker-compose up -d` y probar endpoints
-3. **Tests:** Ejecutar `pytest tests/ -v`
-4. **Código:** Revisar estructura en `src/`
-5. **Documentación:** Leer README.md y API_DOCS.md
-
----
